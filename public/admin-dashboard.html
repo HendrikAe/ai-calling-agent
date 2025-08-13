@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Support Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .urgent .stat-number {
+            color: #e74c3c;
+        }
+
+        .callback .stat-number {
+            color: #3498db;
+        }
+
+        .total .stat-number {
+            color: #27ae60;
+        }
+
+        .resolved .stat-number {
+            color: #f39c12;
+        }
+
+        .stat-label {
+            font-size: 1.1em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .section-content {
+            padding: 30px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .case-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .case-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .case-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .urgent-case {
+            border-left: 5px solid #e74c3c;
+            background: #fdf2f2;
+        }
+
+        .callback-case {
+            border-left: 5px solid #3498db;
+            background: #f8f9fa;
+        }
+
+        .case-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .case-ref {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .case-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .status-urgent {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .status-callback {
+            background: #3498db;
+            color: white;
+        }
+
+        .case-details {
+            margin-bottom: 15px;
+        }
+
+        .case-detail {
+            margin-bottom: 8px;
+        }
+
+        .case-detail strong {
+            color: #333;
+            display: inline-block;
+            width: 120px;
+        }
+
+        .case-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .case-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏢 Business Support Dashboard</h1>
+            <p>Manage urgent cases and scheduled callbacks</p>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card urgent">
+                <div class="stat-number" id="urgentCount">0</div>
+                <div class="stat-label">Urgent Cases</div>
+            </div>
+            <div class="stat-card callback">
+                <div class="stat-number" id="callbackCount">0</div>
+                <div class="stat-label">Scheduled Callbacks</div>
+            </div>
+            <div class="stat-card total">
+                <div class="stat-number" id="totalCount">0</div>
+                <div class="stat-label">Total Cases</div>
+            </div>
+            <div class="stat-card resolved">
+                <div class="stat-number" id="resolvedCount">0</div>
+                <div class="stat-label">Resolved Today</div>
+            </div>
+        </div>
+
+        <!-- Urgent Cases Section -->
+        <div class="section">
+            <div class="section-header">
+                🚨 Urgent Cases (Require Immediate Attention)
+            </div>
+            <div class="section-content">
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="refreshUrgentCases()">🔄 Refresh</button>
+                    <button class="btn btn-danger" onclick="markAllUrgentResolved()">✅ Mark All Resolved</button>
+                    <button class="btn btn-success" onclick="exportUrgentCases()">📊 Export</button>
+                </div>
+                <div id="urgentCases" class="case-grid">
+                    <div class="loading">Loading urgent cases...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scheduled Callbacks Section -->
+        <div class="section">
+            <div class="section-header">
+                📞 Scheduled Callbacks
+            </div>
+            <div class="section-content">
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="refreshCallbacks()">🔄 Refresh</button>
+                    <button class="btn btn-success" onclick="markAllCallbacksCompleted()">✅ Mark All Completed</button>
+                    <button class="btn btn-success" onclick="exportCallbacks()">📊 Export</button>
+                </div>
+                <div id="scheduledCallbacks" class="case-grid">
+                    <div class="loading">Loading scheduled callbacks...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dashboard functionality
+        let urgentCases = [];
+        let callbacks = [];
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboard();
+            // Auto-refresh every 30 seconds
+            setInterval(loadDashboard, 30000);
+        });
+
+        async function loadDashboard() {
+            try {
+                await Promise.all([
+                    refreshUrgentCases(),
+                    refreshCallbacks()
+                ]);
+                updateStatistics();
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        async function refreshUrgentCases() {
+            try {
+                const response = await fetch('/admin/urgent-cases');
+                const data = await response.json();
+                urgentCases = data.urgentCases || [];
+                renderUrgentCases();
+            } catch (error) {
+                document.getElementById('urgentCases').innerHTML = 
+                    '<div class="empty-state"><h3>Error loading urgent cases</h3><p>Please check your connection and try again.</p></div>';
+            }
+        }
+
+        async function refreshCallbacks() {
+            try {
+                const response = await fetch('/admin/scheduled-callbacks');
+                const data = await response.json();
+                callbacks = data.scheduledCallbacks || [];
+                renderCallbacks();
+            } catch (error) {
+                document.getElementById('scheduledCallbacks').innerHTML = 
+                    '<div class="empty-state"><h3>Error loading callbacks</h3><p>Please check your connection and try again.</p></div>';
+            }
+        }
+
+        function renderUrgentCases() {
+            const container = document.getElementById('urgentCases');
+            
+            if (urgentCases.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>🎉 No urgent cases!</h3>
+                        <p>All urgent issues have been resolved.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = urgentCases.map(caseData => `
+                <div class="case-card urgent-case">
+                    <div class="case-header">
+                        <div class="case-ref">${caseData.referenceNumber}</div>
+                        <div class="case-status status-urgent">URGENT</div>
+                    </div>
+                    <div class="case-details">
+                        <div class="case-detail"><strong>Issue:</strong> ${caseData.detailedMessage || 'No details provided'}</div>
+                        <div class="case-detail"><strong>Address:</strong> ${caseData.businessAddress || 'No address provided'}</div>
+                        <div class="case-detail"><strong>Time:</strong> ${formatTime(caseData.timestamp)}</div>
+                        <div class="case-detail"><strong>Response:</strong> ${caseData.estimatedResponse || 'Within 30 minutes'}</div>
+                    </div>
+                    <div class="case-actions">
+                        <button class="btn btn-success" onclick="markUrgentResolved('${caseData.referenceNumber}')">✅ Mark Resolved</button>
+                        <button class="btn btn-primary" onclick="callCustomer('${caseData.referenceNumber}')">📞 Call Customer</button>
+                        <button class="btn btn-danger" onclick="escalateCase('${caseData.referenceNumber}')">⬆️ Escalate</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderCallbacks() {
+            const container = document.getElementById('scheduledCallbacks');
+            
+            if (callbacks.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>📅 No scheduled callbacks</h3>
+                        <p>All callback requests have been completed.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = callbacks.map(callback => `
+                <div class="case-card callback-case">
+                    <div class="case-header">
+                        <div class="case-ref">${callback.referenceNumber}</div>
+                        <div class="case-status status-callback">CALLBACK</div>
+                    </div>
+                    <div class="case-details">
+                        <div class="case-detail"><strong>Callback Time:</strong> ${callback.callbackTime || 'Not specified'}</div>
+                        <div class="case-detail"><strong>Requested:</strong> ${formatTime(callback.timestamp)}</div>
+                        <div class="case-detail"><strong>Status:</strong> ${callback.status || 'Scheduled'}</div>
+                    </div>
+                    <div class="case-actions">
+                        <button class="btn btn-success" onclick="markCallbackCompleted('${callback.referenceNumber}')">✅ Mark Completed</button>
+                        <button class="btn btn-primary" onclick="scheduleCallback('${callback.referenceNumber}')">📅 Reschedule</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStatistics() {
+            document.getElementById('urgentCount').textContent = urgentCases.length;
+            document.getElementById('callbackCount').textContent = callbacks.length;
+            document.getElementById('totalCount').textContent = urgentCases.length + callbacks.length;
+            document.getElementById('resolvedCount').textContent = '0'; // Would track from backend
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return 'Unknown';
+            const date = new Date(timestamp);
+            return date.toLocaleString();
+        }
+
+        // Action functions
+        function markUrgentResolved(referenceNumber) {
+            if (confirm(`Mark case ${referenceNumber} as resolved?`)) {
+                urgentCases = urgentCases.filter(c => c.referenceNumber !== referenceNumber);
+                renderUrgentCases();
+                updateStatistics();
+                // Here you would also make an API call to update the backend
+            }
+        }
+
+        function markCallbackCompleted(referenceNumber) {
+            if (confirm(`Mark callback ${referenceNumber} as completed?`)) {
+                callbacks = callbacks.filter(c => c.referenceNumber !== referenceNumber);
+                renderCallbacks();
+                updateStatistics();
+                // Here you would also make an API call to update the backend
+            }
+        }
+
+        function markAllUrgentResolved() {
+            if (confirm('Mark ALL urgent cases as resolved?')) {
+                urgentCases = [];
+                renderUrgentCases();
+                updateStatistics();
+            }
+        }
+
+        function markAllCallbacksCompleted() {
+            if (confirm('Mark ALL callbacks as completed?')) {
+                callbacks = [];
+                renderCallbacks();
+                updateStatistics();
+            }
+        }
+
+        function callCustomer(referenceNumber) {
+            alert(`Initiating call for case ${referenceNumber}...`);
+            // Here you would integrate with your calling system
+        }
+
+        function escalateCase(referenceNumber) {
+            if (confirm(`Escalate case ${referenceNumber} to higher priority?`)) {
+                alert(`Case ${referenceNumber} has been escalated to senior support.`);
+                // Here you would make an API call to escalate
+            }
+        }
+
+        function scheduleCallback(referenceNumber) {
+            const newTime = prompt('Enter new callback time:');
+            if (newTime) {
+                alert(`Callback ${referenceNumber} rescheduled for ${newTime}`);
+                // Here you would make an API call to reschedule
+            }
+        }
+
+        function exportUrgentCases() {
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "Reference,Issue,Address,Time,Status\n"
+                + urgentCases.map(c => 
+                    `${c.referenceNumber},"${c.detailedMessage}","${c.businessAddress}",${c.timestamp},URGENT`
+                ).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "urgent_cases.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function exportCallbacks() {
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "Reference,Callback Time,Requested,Status\n"
+                + callbacks.map(c => 
+                    `${c.referenceNumber},"${c.callbackTime}",${c.timestamp},${c.status}`
+                ).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "scheduled_callbacks.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
