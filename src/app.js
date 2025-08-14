@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const businessCallController = require('./controllers/businessCallController');
+const googleSheetsService = require('./services/googleSheetsService'); // NEW: Add this import
 const config = require('../config/config');
 const logger = require('./utils/logger');
 
@@ -27,9 +28,68 @@ app.post('/webhook/voice', businessCallController.handleIncomingCall);
 app.post('/webhook/gather', businessCallController.handleGatherInput);
 app.post('/webhook/status', businessCallController.handleCallStatus);
 
-// Admin API routes
+// Existing admin API routes
 app.get('/admin/urgent-cases', businessCallController.getUrgentCases);
 app.get('/admin/scheduled-callbacks', businessCallController.getScheduledCallbacks);
+
+// NEW: Enhanced admin routes with Google Sheets and statistics
+app.get('/admin/statistics', businessCallController.getStatistics);
+app.post('/admin/update-case', businessCallController.updateCaseStatus);
+
+// NEW: Google Sheets integration routes
+app.get('/admin/sheets/urgent', async (req, res) => {
+  try {
+    const cases = await googleSheetsService.getUrgentCases();
+    res.json({ 
+      success: true, 
+      cases: cases,
+      count: cases.length,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('Error getting urgent cases from sheets:', error);
+    res.status(500).json({ error: 'Failed to get urgent cases from Google Sheets' });
+  }
+});
+
+app.get('/admin/sheets/callbacks', async (req, res) => {
+  try {
+    const callbacks = await googleSheetsService.getCallbackRequests();
+    res.json({ 
+      success: true, 
+      callbacks: callbacks,
+      count: callbacks.length,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('Error getting callbacks from sheets:', error);
+    res.status(500).json({ error: 'Failed to get callbacks from Google Sheets' });
+  }
+});
+
+// NEW: Update case status in Google Sheets
+app.post('/admin/sheets/update-case', async (req, res) => {
+  try {
+    const { referenceNumber, status, notes } = req.body;
+    const result = await googleSheetsService.updateCaseStatus(referenceNumber, status, notes);
+    res.json(result);
+  } catch (error) {
+    logger.error('Error updating case status:', error);
+    res.status(500).json({ error: 'Failed to update case status' });
+  }
+});
+
+// NEW: Update callback status in Google Sheets
+app.post('/admin/sheets/update-callback', async (req, res) => {
+  try {
+    const { referenceNumber, status, notes } = req.body;
+    const result = await googleSheetsService.updateCallbackStatus(referenceNumber, status, notes);
+    res.json(result);
+  } catch (error) {
+    logger.error('Error updating callback status:', error);
+    res.status(500).json({ error: 'Failed to update callback status' });
+  }
+});
 
 // Admin Dashboard HTML route
 app.get('/admin/dashboard', (req, res) => {
@@ -55,53 +115,60 @@ app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    service: 'Business Support AI Agent with Address Collection'
+    service: 'Enhanced Swiss German Business Support AI Agent'
   });
 });
 
 // Root endpoint with full system information
 app.get('/', (req, res) => {
   res.json({
-    message: 'Business Support AI Agent is running!',
-    description: 'Smart business support with urgent vs non-urgent handling',
+    message: 'Enhanced Swiss German Business Support AI Agent is running!',
+    description: 'AI agent with ElevenLabs voice and Google Sheets integration',
     
     callFlow: {
-      step1: 'Customer calls → "What happened? How can I help you today?"',
+      step1: 'Customer calls → "Grüezi! Was isch passiert? Wie chan ich euch hälfe?"',
       step2: 'AI analyzes → URGENT or NOT URGENT',
       step3a_urgent: 'If URGENT → Take detailed message',
       step4a_urgent: 'If URGENT → Ask for business address (REQUIRED)',
-      step5a_urgent: 'If URGENT → Provide reference number + immediate escalation',
-      step3b_nonUrgent: 'If NOT URGENT → "Our team will reach out"',
+      step5a_urgent: 'If URGENT → Provide reference number + save to Google Sheets',
+      step3b_nonUrgent: 'If NOT URGENT → "Öis Team wird sich mälde"',
       step4b_nonUrgent: 'If NOT URGENT → Ask when to call back (NO ADDRESS)',
-      step5b_nonUrgent: 'If NOT URGENT → Schedule callback + reference number'
+      step5b_nonUrgent: 'If NOT URGENT → Schedule callback + save to Google Sheets'
+    },
+
+    newFeatures: {
+      elevenLabs: 'Natural Swiss German voice synthesis',
+      googleSheets: 'Automatic data storage and team collaboration',
+      enhancedAdmin: 'Real-time statistics and case management',
+      voiceCloning: 'Custom Swiss German voice options'
     },
 
     urgentExamples: [
-      'Website completely down',
-      'Cannot process payments', 
-      'Data loss or corruption',
-      'Security breach',
-      'System crash affecting customers'
+      'Öisi Websiite isch komplett kaputt',
+      'Mir chönd kei Zahlige verarbeite', 
+      'Date sind verlore',
+      'Sicherheitsproblem/Hack',
+      'System-Absturz'
     ],
 
     nonUrgentExamples: [
-      'Feature questions',
-      'Training requests',
-      'Account settings help', 
-      'General inquiries',
-      'Planning discussions'
+      'Ich ha e Frag über Features',
+      'Chönd der mir hälfe mit Iistellige?',
+      'Schuligs-Aafrag',
+      'Allgemeni Informatione'
     ],
 
     adminDashboard: {
       url: '/admin/dashboard',
       alternativeUrl: '/admin',
-      description: 'Manage urgent cases and scheduled callbacks',
+      description: 'Enhanced dashboard with Google Sheets integration',
       features: [
-        'Real-time case monitoring',
-        'Mark cases as resolved',
+        'Real-time case monitoring from Google Sheets',
+        'Update case status directly',
         'Export data to CSV',
         'Auto-refresh every 30 seconds',
-        'Mobile responsive design'
+        'Call transcription logs',
+        'Voice quality analytics'
       ]
     },
 
@@ -110,17 +177,28 @@ app.get('/', (req, res) => {
       voice: '/webhook/voice',
       gather: '/webhook/gather',
       status: '/webhook/status',
+      
+      // Memory-based endpoints
       urgentCases: '/admin/urgent-cases',
       scheduledCallbacks: '/admin/scheduled-callbacks',
+      
+      // Google Sheets endpoints
+      sheetsUrgent: '/admin/sheets/urgent',
+      sheetsCallbacks: '/admin/sheets/callbacks',
+      updateCase: '/admin/sheets/update-case',
+      updateCallback: '/admin/sheets/update-callback',
+      
+      // Dashboard
       adminDashboard: '/admin/dashboard',
-      adminShortcut: '/admin'
+      adminShortcut: '/admin',
+      statistics: '/admin/statistics'
     },
 
-    quickTest: {
-      healthCheck: 'GET /health',
-      adminDashboard: 'GET /admin/dashboard',
-      urgentCasesAPI: 'GET /admin/urgent-cases',
-      callbacksAPI: 'GET /admin/scheduled-callbacks'
+    integrations: {
+      twilio: 'Voice calls and SMS',
+      openai: 'AI conversation analysis',
+      elevenLabs: 'Natural voice synthesis',
+      googleSheets: 'Data storage and collaboration'
     }
   });
 });
@@ -128,10 +206,16 @@ app.get('/', (req, res) => {
 // Test route for debugging
 app.get('/test', (req, res) => {
   res.json({
-    message: 'Test endpoint working!',
+    message: 'Enhanced AI Agent test endpoint working!',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    port: config.PORT
+    port: config.PORT,
+    features: {
+      elevenLabs: !!config.ELEVENLABS_API_KEY,
+      googleSheets: !!config.GOOGLE_SHEET_ID,
+      twilio: !!config.TWILIO_ACCOUNT_SID,
+      openai: !!config.OPENAI_API_KEY
+    }
   });
 });
 
@@ -157,6 +241,9 @@ app.use((req, res) => {
       '/admin/dashboard',
       '/admin/urgent-cases',
       '/admin/scheduled-callbacks',
+      '/admin/statistics',
+      '/admin/sheets/urgent',
+      '/admin/sheets/callbacks',
       '/webhook/voice (POST)',
       '/webhook/gather (POST)',
       '/webhook/status (POST)'
@@ -167,11 +254,16 @@ app.use((req, res) => {
 const PORT = config.PORT || 3000;
 
 app.listen(PORT, () => {
-  logger.info('🏢 Business Support AI Agent (with Address Collection) running on port ' + PORT);
+  logger.info('🏢 Enhanced Swiss German Business Support AI Agent running on port ' + PORT);
   logger.info('📞 Voice webhook: ' + (config.WEBHOOK_BASE_URL || 'http://localhost:' + PORT) + '/webhook/voice');
+  logger.info('🎙️  ElevenLabs: ' + (config.ELEVENLABS_API_KEY ? 'Enabled' : 'Disabled'));
+  logger.info('📊 Google Sheets: ' + (config.GOOGLE_SHEET_ID ? 'Enabled' : 'Disabled'));
   logger.info('🚨 Urgent cases API: http://localhost:' + PORT + '/admin/urgent-cases');
   logger.info('📞 Callbacks API: http://localhost:' + PORT + '/admin/scheduled-callbacks');
+  logger.info('📊 Sheets urgent: http://localhost:' + PORT + '/admin/sheets/urgent');
+  logger.info('📊 Sheets callbacks: http://localhost:' + PORT + '/admin/sheets/callbacks');
   logger.info('🖥️  Admin Dashboard: http://localhost:' + PORT + '/admin/dashboard');
+  logger.info('📈 Statistics: http://localhost:' + PORT + '/admin/statistics');
   logger.info('🏥 Health check: http://localhost:' + PORT + '/health');
   logger.info('🔍 Test endpoint: http://localhost:' + PORT + '/test');
 });
