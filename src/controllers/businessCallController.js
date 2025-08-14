@@ -4,6 +4,7 @@ const elevenLabsService = require('../services/elevenLabsService');
 const googleSheetsService = require('../services/googleSheetsService');
 const logger = require('../utils/logger');
 
+<<<<<<< HEAD
 class EnhancedSwissGermanCallController {
   constructor() {
     // Initialize Google Sheets on startup
@@ -20,6 +21,10 @@ class EnhancedSwissGermanCallController {
   }
 
   // Step 1: Incoming call with ElevenLabs voice
+=======
+class SwissGermanBusinessCallController {
+  // Step 1: Incoming call - Ask "What happened?" in Swiss German
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
   async handleIncomingCall(req, res) {
     const twiml = new VoiceResponse();
     const callSid = req.body.CallSid;
@@ -28,7 +33,16 @@ class EnhancedSwissGermanCallController {
     logger.info(`Call: ${callSid} from ${from}`);
 
     try {
+<<<<<<< HEAD
       const greetingText = 'Grüezi! Das isch Business Support. Was isch passiert? Wie chan ich euch hälfe?';
+=======
+      // Swiss German greeting
+      twiml.say({
+        voice: 'alice',
+        rate: '0.9',
+        language: 'de-DE' // German voice
+      }, 'Grüezi! Das isch Business Support. Was isch passiert? Wie chan ich euch hälfe?');
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
 
       // Try to use ElevenLabs for more natural voice
       const audioUrl = await elevenLabsService.generateTwilioAudio(greetingText);
@@ -52,6 +66,7 @@ class EnhancedSwissGermanCallController {
         speechTimeout: 3,
         action: '/webhook/gather',
         method: 'POST',
+<<<<<<< HEAD
         language: 'de-CH'
       });
 
@@ -68,6 +83,15 @@ class EnhancedSwissGermanCallController {
         }, fallbackText);
       }
       
+=======
+        language: 'de-CH' // Swiss German speech recognition
+      });
+
+      twiml.say({
+        voice: 'alice',
+        language: 'de-DE'
+      }, 'Bitte rüefed zrug mit eurem Problem.');
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
       twiml.hangup();
 
       // Log call start to Google Sheets
@@ -87,7 +111,11 @@ class EnhancedSwissGermanCallController {
     }
   }
 
+<<<<<<< HEAD
   // Enhanced gather handler with data logging
+=======
+  // Optimized gather handler with Swiss German responses
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
   async handleGatherInput(req, res) {
     const twiml = new VoiceResponse();
     const speechResult = req.body.SpeechResult || '';
@@ -100,6 +128,7 @@ class EnhancedSwissGermanCallController {
     try {
       // Enhanced confidence filtering
       if (confidence < 0.4 || !speechResult || speechResult.trim().length < 3) {
+<<<<<<< HEAD
         const clarificationText = 'Ich han das nöd guet verstande. Bitte beschribed eui Problem i es paar Wörter.';
         
         const audioUrl = await elevenLabsService.generateTwilioAudio(clarificationText);
@@ -112,6 +141,13 @@ class EnhancedSwissGermanCallController {
             language: 'de-DE'
           }, clarificationText);
         }
+=======
+        twiml.say({
+          voice: 'alice',
+          rate: '0.9',
+          language: 'de-DE'
+        }, 'Ich han das nöd guet verstande. Bitte beschribed eui Problem i es paar Wörter.');
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
         
         const gather = twiml.gather({
           input: 'speech',
@@ -122,6 +158,7 @@ class EnhancedSwissGermanCallController {
           language: 'de-CH'
         });
 
+<<<<<<< HEAD
         const endText = 'Merci fürs aalüte.';
         const endAudio = await elevenLabsService.generateTwilioAudio(endText);
         if (endAudio) {
@@ -133,6 +170,12 @@ class EnhancedSwissGermanCallController {
           }, endText);
         }
         
+=======
+        twiml.say({
+          voice: 'alice',
+          language: 'de-DE'
+        }, 'Merci fürs aalüte.');
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
         twiml.hangup();
         res.type('text/xml');
         res.send(twiml.toString());
@@ -168,6 +211,7 @@ class EnhancedSwissGermanCallController {
           await handleCallbackSchedulingWithVoice(twiml, speechResult, callSid, from);
           break;
         default:
+<<<<<<< HEAD
           const endText = 'Merci fürs aalüte bi Business Support.';
           const endAudio = await elevenLabsService.generateTwilioAudio(endText);
           if (endAudio) {
@@ -178,6 +222,12 @@ class EnhancedSwissGermanCallController {
               language: 'de-DE'
             }, endText);
           }
+=======
+          twiml.say({
+            voice: 'alice',
+            language: 'de-DE'
+          }, 'Merci fürs aalüte bi Business Support.');
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
           twiml.hangup();
       }
 
@@ -214,7 +264,11 @@ class EnhancedSwissGermanCallController {
     res.status(200).send('OK');
   }
 
+<<<<<<< HEAD
   // Enhanced admin endpoints with Google Sheets data
+=======
+  // Admin endpoints with Swiss German labels
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
   async getUrgentCases(req, res) {
     try {
       // Get data from both memory and Google Sheets
@@ -223,10 +277,15 @@ class EnhancedSwissGermanCallController {
       
       res.json({
         success: true,
+<<<<<<< HEAD
         memoryCases: memoryCases,
         sheetsCases: sheetsCases,
         totalMemory: memoryCases.length,
         totalSheets: sheetsCases.length,
+=======
+        dringendiFäll: urgentCases,
+        anzahl: urgentCases.length,
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
         timestamp: new Date().toISOString()
       });
     } catch (error) {
@@ -242,14 +301,20 @@ class EnhancedSwissGermanCallController {
       
       res.json({
         success: true,
+<<<<<<< HEAD
         memoryCallbacks: memoryCallbacks,
         sheetsCallbacks: sheetsCallbacks,
         totalMemory: memoryCallbacks.length,
         totalSheets: sheetsCallbacks.length,
+=======
+        plantiRückrüef: callbacks,
+        anzahl: callbacks.length,
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
         timestamp: new Date().toISOString()
       });
     } catch (error) {
       res.status(500).json({ error: 'Fähler bim Lade vo Rückrüef' });
+<<<<<<< HEAD
     }
   }
 
@@ -274,11 +339,17 @@ class EnhancedSwissGermanCallController {
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: 'Fähler bim Update vo Fall-Status' });
+=======
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
     }
   }
 }
 
+<<<<<<< HEAD
 // Enhanced handlers with ElevenLabs voice and Google Sheets integration
+=======
+// Optimized stage handlers with Swiss German responses
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
 
 async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
   try {
@@ -289,6 +360,7 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
     
     const analysis = await Promise.race([analysisPromise, timeoutPromise]);
     
+<<<<<<< HEAD
     // Generate natural Swiss German response with ElevenLabs
     const audioUrl = await elevenLabsService.generateTwilioAudio(analysis.suggestedResponse);
     if (audioUrl) {
@@ -313,6 +385,22 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
           language: 'de-DE'
         }, urgentText);
       }
+=======
+    // Swiss German response
+    twiml.say({
+      voice: 'alice',
+      rate: '0.9',
+      language: 'de-DE'
+    }, analysis.suggestedResponse);
+
+    if (analysis.urgency === 'urgent') {
+      // URGENT PATH - Will lead to address collection
+      twiml.say({
+        voice: 'alice',
+        rate: '0.9',
+        language: 'de-DE'
+      }, 'Das tönt dringend. Bitte gäbed mer alli Details, demit ich sofort Hilf cha schicke.');
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
       
       const gather = twiml.gather({
         input: 'speech',
@@ -323,6 +411,7 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
         language: 'de-CH'
       });
 
+<<<<<<< HEAD
       const helpText = 'Ich wird euch soforti Hilf bringe.';
       const helpAudio = await elevenLabsService.generateTwilioAudio(helpText);
       if (helpAudio) {
@@ -348,6 +437,21 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
           language: 'de-DE'
         }, teamText);
       }
+=======
+      twiml.say({
+        voice: 'alice',
+        language: 'de-DE'
+      }, 'Ich wird euch soforti Hilf bringe.');
+      twiml.hangup();
+
+    } else {
+      // NON-URGENT PATH - Will lead to callback scheduling
+      twiml.say({
+        voice: 'alice',
+        rate: '0.9',
+        language: 'de-DE'
+      }, 'Öis spezialisiert Team wird sich mälde zum euch bi däm hälfe.');
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
       
       const gather = twiml.gather({
         input: 'speech',
@@ -358,6 +462,7 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
         language: 'de-CH'
       });
 
+<<<<<<< HEAD
       const thanksText = 'Merci fürs aalüte.';
       const thanksAudio = await elevenLabsService.generateTwilioAudio(thanksText);
       if (thanksAudio) {
@@ -368,11 +473,18 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
           language: 'de-DE'
         }, thanksText);
       }
+=======
+      twiml.say({
+        voice: 'alice',
+        language: 'de-DE'
+      }, 'Merci fürs aalüte.');
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
       twiml.hangup();
     }
     
   } catch (error) {
     logger.error('Analysis failed, using fallback:', error);
+<<<<<<< HEAD
     // Fallback without AI
     const fallbackText = 'Ich verstaa, der händ es Problem. Gäbed mer d Details, demit ich euch sofort cha hälfe.';
     const fallbackAudio = await elevenLabsService.generateTwilioAudio(fallbackText);
@@ -385,6 +497,14 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
         language: 'de-DE'
       }, fallbackText);
     }
+=======
+    // Fast fallback without AI
+    twiml.say({
+      voice: 'alice',
+      rate: '0.9',
+      language: 'de-DE'
+    }, 'Ich verstaa, der händ es Problem. Gäbed mer d Details, demit ich euch sofort cha hälfe.');
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
     
     const gather = twiml.gather({
       input: 'speech',
@@ -395,6 +515,7 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
       language: 'de-CH'
     });
     
+<<<<<<< HEAD
     const processText = 'Eui Problem wird behandlet.';
     const processAudio = await elevenLabsService.generateTwilioAudio(processText);
     if (processAudio) {
@@ -405,6 +526,12 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
         language: 'de-DE'
       }, processText);
     }
+=======
+    twiml.say({
+      voice: 'alice',
+      language: 'de-DE'
+    }, 'Eui Problem wird behandlet.');
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
     twiml.hangup();
   }
 }
@@ -412,6 +539,7 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
 async function handleUrgentDetailsWithVoice(twiml, speechResult, callSid, from) {
   const response = await businessSupportService.handleUrgentDetails(speechResult, callSid);
   
+<<<<<<< HEAD
   // Generate ElevenLabs audio for response
   const responseAudio = await elevenLabsService.generateTwilioAudio(response.response);
   if (responseAudio) {
@@ -436,6 +564,20 @@ async function handleUrgentDetailsWithVoice(twiml, speechResult, callSid, from) 
       language: 'de-DE'
     }, addressText);
   }
+=======
+  twiml.say({
+    voice: 'alice',
+    rate: '0.9',
+    language: 'de-DE'
+  }, response.response);
+
+  // CRITICAL: Ask for business address for urgent cases in Swiss German
+  twiml.say({
+    voice: 'alice',
+    rate: '0.9',
+    language: 'de-DE'
+  }, 'Für soforti Hilf vor Ort bruche ich eui Geschäfts-Adrässe mit Strass, Stadt und Kanton.');
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
 
   const gather = twiml.gather({
     input: 'speech',
@@ -446,6 +588,7 @@ async function handleUrgentDetailsWithVoice(twiml, speechResult, callSid, from) 
     language: 'de-CH'
   });
 
+<<<<<<< HEAD
   const needText = 'Ich bruche eui vollständigi Geschäfts-Adrässe.';
   const needAudio = await elevenLabsService.generateTwilioAudio(needText);
   if (needAudio) {
@@ -456,12 +599,19 @@ async function handleUrgentDetailsWithVoice(twiml, speechResult, callSid, from) 
       language: 'de-DE'
     }, needText);
   }
+=======
+  twiml.say({
+    voice: 'alice',
+    language: 'de-DE'
+  }, 'Ich bruche eui vollständigi Geschäfts-Adrässe.');
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
   twiml.hangup();
 }
 
 async function handleAddressCollectionWithVoice(twiml, speechResult, callSid, from) {
   const response = await businessSupportService.collectAddress(speechResult, callSid);
   
+<<<<<<< HEAD
   // Generate ElevenLabs audio for confirmation
   const confirmAudio = await elevenLabsService.generateTwilioAudio(response.response);
   if (confirmAudio) {
@@ -484,6 +634,13 @@ async function handleAddressCollectionWithVoice(twiml, speechResult, callSid, fr
       businessAddress: speechResult
     });
   }
+=======
+  twiml.say({
+    voice: 'alice',
+    rate: '0.9',
+    language: 'de-DE'
+  }, response.response);
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
 
   twiml.hangup();
 }
@@ -491,6 +648,7 @@ async function handleAddressCollectionWithVoice(twiml, speechResult, callSid, fr
 async function handleNonUrgentSetupWithVoice(twiml, speechResult, callSid, from) {
   const response = await businessSupportService.handleNonUrgentCallback(speechResult, callSid);
   
+<<<<<<< HEAD
   // Generate ElevenLabs audio for response
   const responseAudio = await elevenLabsService.generateTwilioAudio(response.response);
   if (responseAudio) {
@@ -502,6 +660,13 @@ async function handleNonUrgentSetupWithVoice(twiml, speechResult, callSid, from)
       language: 'de-DE'
     }, response.response);
   }
+=======
+  twiml.say({
+    voice: 'alice',
+    rate: '0.9',
+    language: 'de-DE'
+  }, response.response);
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
 
   const gather = twiml.gather({
     input: 'speech',
@@ -512,6 +677,7 @@ async function handleNonUrgentSetupWithVoice(twiml, speechResult, callSid, from)
     language: 'de-CH'
   });
 
+<<<<<<< HEAD
   const thanksText = 'Merci fürs aalüte.';
   const thanksAudio = await elevenLabsService.generateTwilioAudio(thanksText);
   if (thanksAudio) {
@@ -522,12 +688,19 @@ async function handleNonUrgentSetupWithVoice(twiml, speechResult, callSid, from)
       language: 'de-DE'
     }, thanksText);
   }
+=======
+  twiml.say({
+    voice: 'alice',
+    language: 'de-DE'
+  }, 'Merci fürs aalüte.');
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
   twiml.hangup();
 }
 
 async function handleCallbackSchedulingWithVoice(twiml, speechResult, callSid, from) {
   const response = await businessSupportService.scheduleCallback(speechResult, callSid);
   
+<<<<<<< HEAD
   // Generate ElevenLabs audio for confirmation
   const confirmAudio = await elevenLabsService.generateTwilioAudio(response.response);
   if (confirmAudio) {
@@ -562,11 +735,25 @@ async function handleCallbackSchedulingWithVoice(twiml, speechResult, callSid, f
       language: 'de-DE'
     }, goodbyeText);
   }
+=======
+  twiml.say({
+    voice: 'alice',
+    rate: '0.9',
+    language: 'de-DE'
+  }, response.response);
+
+  // CALLBACK SCHEDULED - End call
+  twiml.say({
+    voice: 'alice',
+    language: 'de-DE'
+  }, 'Händ en schöne Tag!');
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
   twiml.hangup();
 }
 
 async function handleError(res) {
   const twiml = new VoiceResponse();
+<<<<<<< HEAD
   const errorText = 'Technischi Schwierigkeite. Bitte rüefed i es paar Minute zrug.';
   
   const errorAudio = await elevenLabsService.generateTwilioAudio(errorText);
@@ -578,10 +765,20 @@ async function handleError(res) {
       language: 'de-DE'
     }, errorText);
   }
+=======
+  twiml.say({
+    voice: 'alice',
+    language: 'de-DE'
+  }, 'Technischi Schwierigkeite. Bitte rüefed i es paar Minute zrug.');
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
   twiml.hangup();
   
   res.type('text/xml');
   res.send(twiml.toString());
 }
 
+<<<<<<< HEAD
 module.exports = new EnhancedSwissGermanCallController();
+=======
+module.exports = new SwissGermanBusinessCallController();
+>>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
