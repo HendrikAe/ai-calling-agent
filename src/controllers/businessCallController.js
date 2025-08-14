@@ -4,7 +4,6 @@ const elevenLabsService = require('../services/elevenLabsService');
 const googleSheetsService = require('../services/googleSheetsService');
 const logger = require('../utils/logger');
 
-<<<<<<< HEAD
 class EnhancedSwissGermanCallController {
   constructor() {
     // Initialize Google Sheets on startup
@@ -21,10 +20,6 @@ class EnhancedSwissGermanCallController {
   }
 
   // Step 1: Incoming call with ElevenLabs voice
-=======
-class SwissGermanBusinessCallController {
-  // Step 1: Incoming call - Ask "What happened?" in Swiss German
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
   async handleIncomingCall(req, res) {
     const twiml = new VoiceResponse();
     const callSid = req.body.CallSid;
@@ -33,25 +28,19 @@ class SwissGermanBusinessCallController {
     logger.info(`Call: ${callSid} from ${from}`);
 
     try {
-<<<<<<< HEAD
       const greetingText = 'Grüezi! Das isch Business Support. Was isch passiert? Wie chan ich euch hälfe?';
-=======
-      // Swiss German greeting
-      twiml.say({
-        voice: 'alice',
-        rate: '0.9',
-        language: 'de-DE' // German voice
-      }, 'Grüezi! Das isch Business Support. Was isch passiert? Wie chan ich euch hälfe?');
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
 
       // Try to use ElevenLabs for more natural voice
-      const audioUrl = await elevenLabsService.generateTwilioAudio(greetingText);
-      
-      if (audioUrl) {
-        // Use ElevenLabs generated audio
-        twiml.play(audioUrl);
-      } else {
+      try {
+        const audioUrl = await elevenLabsService.generateTwilioAudio(greetingText);
+        if (audioUrl) {
+          twiml.play(audioUrl);
+        } else {
+          throw new Error('ElevenLabs audio generation failed');
+        }
+      } catch (elevenLabsError) {
         // Fallback to Twilio voice
+        logger.warn('ElevenLabs fallback:', elevenLabsError.message);
         twiml.say({
           voice: 'alice',
           rate: '0.9',
@@ -66,41 +55,38 @@ class SwissGermanBusinessCallController {
         speechTimeout: 3,
         action: '/webhook/gather',
         method: 'POST',
-<<<<<<< HEAD
         language: 'de-CH'
       });
 
       // Fallback message
       const fallbackText = 'Bitte rüefed zrug mit eurem Problem.';
-      const fallbackAudio = await elevenLabsService.generateTwilioAudio(fallbackText);
-      
-      if (fallbackAudio) {
-        twiml.play(fallbackAudio);
-      } else {
+      try {
+        const fallbackAudio = await elevenLabsService.generateTwilioAudio(fallbackText);
+        if (fallbackAudio) {
+          twiml.play(fallbackAudio);
+        } else {
+          throw new Error('ElevenLabs audio generation failed');
+        }
+      } catch (elevenLabsError) {
         twiml.say({
           voice: 'alice',
           language: 'de-DE'
         }, fallbackText);
       }
       
-=======
-        language: 'de-CH' // Swiss German speech recognition
-      });
-
-      twiml.say({
-        voice: 'alice',
-        language: 'de-DE'
-      }, 'Bitte rüefed zrug mit eurem Problem.');
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
       twiml.hangup();
 
       // Log call start to Google Sheets
-      await googleSheetsService.logCall({
-        callSid: callSid,
-        from: from,
-        type: 'Incoming',
-        status: 'Started'
-      });
+      try {
+        await googleSheetsService.logCall({
+          callSid: callSid,
+          from: from,
+          type: 'Incoming',
+          status: 'Started'
+        });
+      } catch (sheetsError) {
+        logger.warn('Google Sheets logging failed:', sheetsError.message);
+      }
 
       res.type('text/xml');
       res.send(twiml.toString());
@@ -111,11 +97,7 @@ class SwissGermanBusinessCallController {
     }
   }
 
-<<<<<<< HEAD
   // Enhanced gather handler with data logging
-=======
-  // Optimized gather handler with Swiss German responses
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
   async handleGatherInput(req, res) {
     const twiml = new VoiceResponse();
     const speechResult = req.body.SpeechResult || '';
@@ -128,26 +110,22 @@ class SwissGermanBusinessCallController {
     try {
       // Enhanced confidence filtering
       if (confidence < 0.4 || !speechResult || speechResult.trim().length < 3) {
-<<<<<<< HEAD
         const clarificationText = 'Ich han das nöd guet verstande. Bitte beschribed eui Problem i es paar Wörter.';
         
-        const audioUrl = await elevenLabsService.generateTwilioAudio(clarificationText);
-        if (audioUrl) {
-          twiml.play(audioUrl);
-        } else {
+        try {
+          const audioUrl = await elevenLabsService.generateTwilioAudio(clarificationText);
+          if (audioUrl) {
+            twiml.play(audioUrl);
+          } else {
+            throw new Error('ElevenLabs audio generation failed');
+          }
+        } catch (elevenLabsError) {
           twiml.say({
             voice: 'alice',
             rate: '0.9',
             language: 'de-DE'
           }, clarificationText);
         }
-=======
-        twiml.say({
-          voice: 'alice',
-          rate: '0.9',
-          language: 'de-DE'
-        }, 'Ich han das nöd guet verstande. Bitte beschribed eui Problem i es paar Wörter.');
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
         
         const gather = twiml.gather({
           input: 'speech',
@@ -158,24 +136,21 @@ class SwissGermanBusinessCallController {
           language: 'de-CH'
         });
 
-<<<<<<< HEAD
         const endText = 'Merci fürs aalüte.';
-        const endAudio = await elevenLabsService.generateTwilioAudio(endText);
-        if (endAudio) {
-          twiml.play(endAudio);
-        } else {
+        try {
+          const endAudio = await elevenLabsService.generateTwilioAudio(endText);
+          if (endAudio) {
+            twiml.play(endAudio);
+          } else {
+            throw new Error('ElevenLabs audio generation failed');
+          }
+        } catch (elevenLabsError) {
           twiml.say({
             voice: 'alice',
             language: 'de-DE'
           }, endText);
         }
         
-=======
-        twiml.say({
-          voice: 'alice',
-          language: 'de-DE'
-        }, 'Merci fürs aalüte.');
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
         twiml.hangup();
         res.type('text/xml');
         res.send(twiml.toString());
@@ -185,13 +160,17 @@ class SwissGermanBusinessCallController {
       const currentStage = businessSupportService.getCallStage(callSid);
       
       // Log transcription to Google Sheets
-      await googleSheetsService.logCall({
-        callSid: callSid,
-        from: from,
-        confidence: confidence,
-        transcription: speechResult,
-        status: 'In Progress'
-      });
+      try {
+        await googleSheetsService.logCall({
+          callSid: callSid,
+          from: from,
+          confidence: confidence,
+          transcription: speechResult,
+          status: 'In Progress'
+        });
+      } catch (sheetsError) {
+        logger.warn('Google Sheets logging failed:', sheetsError.message);
+      }
 
       // Route to appropriate handler
       switch (currentStage) {
@@ -211,23 +190,20 @@ class SwissGermanBusinessCallController {
           await handleCallbackSchedulingWithVoice(twiml, speechResult, callSid, from);
           break;
         default:
-<<<<<<< HEAD
           const endText = 'Merci fürs aalüte bi Business Support.';
-          const endAudio = await elevenLabsService.generateTwilioAudio(endText);
-          if (endAudio) {
-            twiml.play(endAudio);
-          } else {
+          try {
+            const endAudio = await elevenLabsService.generateTwilioAudio(endText);
+            if (endAudio) {
+              twiml.play(endAudio);
+            } else {
+              throw new Error('ElevenLabs audio generation failed');
+            }
+          } catch (elevenLabsError) {
             twiml.say({
               voice: 'alice',
               language: 'de-DE'
             }, endText);
           }
-=======
-          twiml.say({
-            voice: 'alice',
-            language: 'de-DE'
-          }, 'Merci fürs aalüte bi Business Support.');
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
           twiml.hangup();
       }
 
@@ -251,12 +227,16 @@ class SwissGermanBusinessCallController {
     
     // Log call completion to Google Sheets
     if (callStatus === 'completed') {
-      await googleSheetsService.logCall({
-        callSid: callSid,
-        from: from,
-        duration: duration,
-        status: 'Completed'
-      });
+      try {
+        await googleSheetsService.logCall({
+          callSid: callSid,
+          from: from,
+          duration: duration,
+          status: 'Completed'
+        });
+      } catch (sheetsError) {
+        logger.warn('Google Sheets logging failed:', sheetsError.message);
+      }
       
       businessSupportService.cleanup();
     }
@@ -264,28 +244,25 @@ class SwissGermanBusinessCallController {
     res.status(200).send('OK');
   }
 
-<<<<<<< HEAD
   // Enhanced admin endpoints with Google Sheets data
-=======
-  // Admin endpoints with Swiss German labels
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
   async getUrgentCases(req, res) {
     try {
       // Get data from both memory and Google Sheets
       const memoryCases = businessSupportService.getUrgentCases();
-      const sheetsCases = await googleSheetsService.getUrgentCases();
+      let sheetsCases = [];
+      
+      try {
+        sheetsCases = await googleSheetsService.getUrgentCases();
+      } catch (sheetsError) {
+        logger.warn('Google Sheets not available:', sheetsError.message);
+      }
       
       res.json({
         success: true,
-<<<<<<< HEAD
         memoryCases: memoryCases,
         sheetsCases: sheetsCases,
         totalMemory: memoryCases.length,
         totalSheets: sheetsCases.length,
-=======
-        dringendiFäll: urgentCases,
-        anzahl: urgentCases.length,
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
         timestamp: new Date().toISOString()
       });
     } catch (error) {
@@ -297,31 +274,48 @@ class SwissGermanBusinessCallController {
     try {
       // Get data from both memory and Google Sheets
       const memoryCallbacks = businessSupportService.getScheduledCallbacks();
-      const sheetsCallbacks = await googleSheetsService.getCallbackRequests();
+      let sheetsCallbacks = [];
+      
+      try {
+        sheetsCallbacks = await googleSheetsService.getCallbackRequests();
+      } catch (sheetsError) {
+        logger.warn('Google Sheets not available:', sheetsError.message);
+      }
       
       res.json({
         success: true,
-<<<<<<< HEAD
         memoryCallbacks: memoryCallbacks,
         sheetsCallbacks: sheetsCallbacks,
         totalMemory: memoryCallbacks.length,
         totalSheets: sheetsCallbacks.length,
-=======
-        plantiRückrüef: callbacks,
-        anzahl: callbacks.length,
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
         timestamp: new Date().toISOString()
       });
     } catch (error) {
       res.status(500).json({ error: 'Fähler bim Lade vo Rückrüef' });
-<<<<<<< HEAD
     }
   }
 
   // New endpoint for Google Sheets statistics
   async getStatistics(req, res) {
     try {
-      const stats = await googleSheetsService.getStatistics();
+      let stats = null;
+      
+      try {
+        stats = await googleSheetsService.getStatistics();
+      } catch (sheetsError) {
+        logger.warn('Google Sheets statistics not available:', sheetsError.message);
+        stats = {
+          totalUrgentCases: 0,
+          todayUrgentCases: 0,
+          resolvedUrgentCases: 0,
+          totalCallbacks: 0,
+          todayCallbacks: 0,
+          completedCallbacks: 0,
+          lastUpdated: new Date().toISOString(),
+          googleSheetsStatus: 'Disconnected'
+        };
+      }
+      
       res.json({
         success: true,
         statistics: stats
@@ -335,21 +329,22 @@ class SwissGermanBusinessCallController {
   async updateCaseStatus(req, res) {
     try {
       const { referenceNumber, status, notes } = req.body;
-      const result = await googleSheetsService.updateCaseStatus(referenceNumber, status, notes);
+      let result = { success: false, error: 'Google Sheets not available' };
+      
+      try {
+        result = await googleSheetsService.updateCaseStatus(referenceNumber, status, notes);
+      } catch (sheetsError) {
+        logger.warn('Google Sheets update failed:', sheetsError.message);
+      }
+      
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: 'Fähler bim Update vo Fall-Status' });
-=======
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
     }
   }
 }
 
-<<<<<<< HEAD
 // Enhanced handlers with ElevenLabs voice and Google Sheets integration
-=======
-// Optimized stage handlers with Swiss German responses
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
 
 async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
   try {
@@ -360,12 +355,15 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
     
     const analysis = await Promise.race([analysisPromise, timeoutPromise]);
     
-<<<<<<< HEAD
     // Generate natural Swiss German response with ElevenLabs
-    const audioUrl = await elevenLabsService.generateTwilioAudio(analysis.suggestedResponse);
-    if (audioUrl) {
-      twiml.play(audioUrl);
-    } else {
+    try {
+      const audioUrl = await elevenLabsService.generateTwilioAudio(analysis.suggestedResponse);
+      if (audioUrl) {
+        twiml.play(audioUrl);
+      } else {
+        throw new Error('ElevenLabs audio generation failed');
+      }
+    } catch (elevenLabsError) {
       twiml.say({
         voice: 'alice',
         rate: '0.9',
@@ -375,32 +373,20 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
 
     if (analysis.urgency === 'urgent') {
       const urgentText = 'Das tönt dringend. Bitte gäbed mer alli Details, demit ich sofort Hilf cha schicke.';
-      const urgentAudio = await elevenLabsService.generateTwilioAudio(urgentText);
-      if (urgentAudio) {
-        twiml.play(urgentAudio);
-      } else {
+      try {
+        const urgentAudio = await elevenLabsService.generateTwilioAudio(urgentText);
+        if (urgentAudio) {
+          twiml.play(urgentAudio);
+        } else {
+          throw new Error('ElevenLabs audio generation failed');
+        }
+      } catch (elevenLabsError) {
         twiml.say({
           voice: 'alice',
           rate: '0.9',
           language: 'de-DE'
         }, urgentText);
       }
-=======
-    // Swiss German response
-    twiml.say({
-      voice: 'alice',
-      rate: '0.9',
-      language: 'de-DE'
-    }, analysis.suggestedResponse);
-
-    if (analysis.urgency === 'urgent') {
-      // URGENT PATH - Will lead to address collection
-      twiml.say({
-        voice: 'alice',
-        rate: '0.9',
-        language: 'de-DE'
-      }, 'Das tönt dringend. Bitte gäbed mer alli Details, demit ich sofort Hilf cha schicke.');
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
       
       const gather = twiml.gather({
         input: 'speech',
@@ -411,12 +397,15 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
         language: 'de-CH'
       });
 
-<<<<<<< HEAD
       const helpText = 'Ich wird euch soforti Hilf bringe.';
-      const helpAudio = await elevenLabsService.generateTwilioAudio(helpText);
-      if (helpAudio) {
-        twiml.play(helpAudio);
-      } else {
+      try {
+        const helpAudio = await elevenLabsService.generateTwilioAudio(helpText);
+        if (helpAudio) {
+          twiml.play(helpAudio);
+        } else {
+          throw new Error('ElevenLabs audio generation failed');
+        }
+      } catch (elevenLabsError) {
         twiml.say({
           voice: 'alice',
           language: 'de-DE'
@@ -427,31 +416,20 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
     } else {
       // NON-URGENT PATH
       const teamText = 'Öis spezialisiert Team wird sich mälde zum euch bi däm hälfe.';
-      const teamAudio = await elevenLabsService.generateTwilioAudio(teamText);
-      if (teamAudio) {
-        twiml.play(teamAudio);
-      } else {
+      try {
+        const teamAudio = await elevenLabsService.generateTwilioAudio(teamText);
+        if (teamAudio) {
+          twiml.play(teamAudio);
+        } else {
+          throw new Error('ElevenLabs audio generation failed');
+        }
+      } catch (elevenLabsError) {
         twiml.say({
           voice: 'alice',
           rate: '0.9',
           language: 'de-DE'
         }, teamText);
       }
-=======
-      twiml.say({
-        voice: 'alice',
-        language: 'de-DE'
-      }, 'Ich wird euch soforti Hilf bringe.');
-      twiml.hangup();
-
-    } else {
-      // NON-URGENT PATH - Will lead to callback scheduling
-      twiml.say({
-        voice: 'alice',
-        rate: '0.9',
-        language: 'de-DE'
-      }, 'Öis spezialisiert Team wird sich mälde zum euch bi däm hälfe.');
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
       
       const gather = twiml.gather({
         input: 'speech',
@@ -462,49 +440,41 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
         language: 'de-CH'
       });
 
-<<<<<<< HEAD
       const thanksText = 'Merci fürs aalüte.';
-      const thanksAudio = await elevenLabsService.generateTwilioAudio(thanksText);
-      if (thanksAudio) {
-        twiml.play(thanksAudio);
-      } else {
+      try {
+        const thanksAudio = await elevenLabsService.generateTwilioAudio(thanksText);
+        if (thanksAudio) {
+          twiml.play(thanksAudio);
+        } else {
+          throw new Error('ElevenLabs audio generation failed');
+        }
+      } catch (elevenLabsError) {
         twiml.say({
           voice: 'alice',
           language: 'de-DE'
         }, thanksText);
       }
-=======
-      twiml.say({
-        voice: 'alice',
-        language: 'de-DE'
-      }, 'Merci fürs aalüte.');
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
       twiml.hangup();
     }
     
   } catch (error) {
     logger.error('Analysis failed, using fallback:', error);
-<<<<<<< HEAD
     // Fallback without AI
     const fallbackText = 'Ich verstaa, der händ es Problem. Gäbed mer d Details, demit ich euch sofort cha hälfe.';
-    const fallbackAudio = await elevenLabsService.generateTwilioAudio(fallbackText);
-    if (fallbackAudio) {
-      twiml.play(fallbackAudio);
-    } else {
+    try {
+      const fallbackAudio = await elevenLabsService.generateTwilioAudio(fallbackText);
+      if (fallbackAudio) {
+        twiml.play(fallbackAudio);
+      } else {
+        throw new Error('ElevenLabs audio generation failed');
+      }
+    } catch (elevenLabsError) {
       twiml.say({
         voice: 'alice',
         rate: '0.9',
         language: 'de-DE'
       }, fallbackText);
     }
-=======
-    // Fast fallback without AI
-    twiml.say({
-      voice: 'alice',
-      rate: '0.9',
-      language: 'de-DE'
-    }, 'Ich verstaa, der händ es Problem. Gäbed mer d Details, demit ich euch sofort cha hälfe.');
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
     
     const gather = twiml.gather({
       input: 'speech',
@@ -515,23 +485,20 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
       language: 'de-CH'
     });
     
-<<<<<<< HEAD
     const processText = 'Eui Problem wird behandlet.';
-    const processAudio = await elevenLabsService.generateTwilioAudio(processText);
-    if (processAudio) {
-      twiml.play(processAudio);
-    } else {
+    try {
+      const processAudio = await elevenLabsService.generateTwilioAudio(processText);
+      if (processAudio) {
+        twiml.play(processAudio);
+      } else {
+        throw new Error('ElevenLabs audio generation failed');
+      }
+    } catch (elevenLabsError) {
       twiml.say({
         voice: 'alice',
         language: 'de-DE'
       }, processText);
     }
-=======
-    twiml.say({
-      voice: 'alice',
-      language: 'de-DE'
-    }, 'Eui Problem wird behandlet.');
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
     twiml.hangup();
   }
 }
@@ -539,12 +506,15 @@ async function handleInitialIssueWithVoice(twiml, speechResult, callSid, from) {
 async function handleUrgentDetailsWithVoice(twiml, speechResult, callSid, from) {
   const response = await businessSupportService.handleUrgentDetails(speechResult, callSid);
   
-<<<<<<< HEAD
   // Generate ElevenLabs audio for response
-  const responseAudio = await elevenLabsService.generateTwilioAudio(response.response);
-  if (responseAudio) {
-    twiml.play(responseAudio);
-  } else {
+  try {
+    const responseAudio = await elevenLabsService.generateTwilioAudio(response.response);
+    if (responseAudio) {
+      twiml.play(responseAudio);
+    } else {
+      throw new Error('ElevenLabs audio generation failed');
+    }
+  } catch (elevenLabsError) {
     twiml.say({
       voice: 'alice',
       rate: '0.9',
@@ -554,30 +524,20 @@ async function handleUrgentDetailsWithVoice(twiml, speechResult, callSid, from) 
 
   // Ask for address with natural voice
   const addressText = 'Für soforti Hilf vor Ort bruche ich eui Geschäfts-Adrässe mit Strass, Stadt und Kanton.';
-  const addressAudio = await elevenLabsService.generateTwilioAudio(addressText);
-  if (addressAudio) {
-    twiml.play(addressAudio);
-  } else {
+  try {
+    const addressAudio = await elevenLabsService.generateTwilioAudio(addressText);
+    if (addressAudio) {
+      twiml.play(addressAudio);
+    } else {
+      throw new Error('ElevenLabs audio generation failed');
+    }
+  } catch (elevenLabsError) {
     twiml.say({
       voice: 'alice',
       rate: '0.9',
       language: 'de-DE'
     }, addressText);
   }
-=======
-  twiml.say({
-    voice: 'alice',
-    rate: '0.9',
-    language: 'de-DE'
-  }, response.response);
-
-  // CRITICAL: Ask for business address for urgent cases in Swiss German
-  twiml.say({
-    voice: 'alice',
-    rate: '0.9',
-    language: 'de-DE'
-  }, 'Für soforti Hilf vor Ort bruche ich eui Geschäfts-Adrässe mit Strass, Stadt und Kanton.');
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
 
   const gather = twiml.gather({
     input: 'speech',
@@ -588,35 +548,35 @@ async function handleUrgentDetailsWithVoice(twiml, speechResult, callSid, from) 
     language: 'de-CH'
   });
 
-<<<<<<< HEAD
   const needText = 'Ich bruche eui vollständigi Geschäfts-Adrässe.';
-  const needAudio = await elevenLabsService.generateTwilioAudio(needText);
-  if (needAudio) {
-    twiml.play(needAudio);
-  } else {
+  try {
+    const needAudio = await elevenLabsService.generateTwilioAudio(needText);
+    if (needAudio) {
+      twiml.play(needAudio);
+    } else {
+      throw new Error('ElevenLabs audio generation failed');
+    }
+  } catch (elevenLabsError) {
     twiml.say({
       voice: 'alice',
       language: 'de-DE'
     }, needText);
   }
-=======
-  twiml.say({
-    voice: 'alice',
-    language: 'de-DE'
-  }, 'Ich bruche eui vollständigi Geschäfts-Adrässe.');
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
   twiml.hangup();
 }
 
 async function handleAddressCollectionWithVoice(twiml, speechResult, callSid, from) {
   const response = await businessSupportService.collectAddress(speechResult, callSid);
   
-<<<<<<< HEAD
   // Generate ElevenLabs audio for confirmation
-  const confirmAudio = await elevenLabsService.generateTwilioAudio(response.response);
-  if (confirmAudio) {
-    twiml.play(confirmAudio);
-  } else {
+  try {
+    const confirmAudio = await elevenLabsService.generateTwilioAudio(response.response);
+    if (confirmAudio) {
+      twiml.play(confirmAudio);
+    } else {
+      throw new Error('ElevenLabs audio generation failed');
+    }
+  } catch (elevenLabsError) {
     twiml.say({
       voice: 'alice',
       rate: '0.9',
@@ -626,21 +586,18 @@ async function handleAddressCollectionWithVoice(twiml, speechResult, callSid, fr
 
   // Save urgent case to Google Sheets
   if (response.caseComplete) {
-    const caseData = businessSupportService.collectedData?.get(callSid) || {};
-    await googleSheetsService.saveUrgentCase({
-      ...caseData,
-      phoneNumber: from,
-      referenceNumber: response.referenceNumber,
-      businessAddress: speechResult
-    });
+    try {
+      const caseData = businessSupportService.collectedData?.get(callSid) || {};
+      await googleSheetsService.saveUrgentCase({
+        ...caseData,
+        phoneNumber: from,
+        referenceNumber: response.referenceNumber,
+        businessAddress: speechResult
+      });
+    } catch (sheetsError) {
+      logger.warn('Google Sheets save failed:', sheetsError.message);
+    }
   }
-=======
-  twiml.say({
-    voice: 'alice',
-    rate: '0.9',
-    language: 'de-DE'
-  }, response.response);
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
 
   twiml.hangup();
 }
@@ -648,25 +605,21 @@ async function handleAddressCollectionWithVoice(twiml, speechResult, callSid, fr
 async function handleNonUrgentSetupWithVoice(twiml, speechResult, callSid, from) {
   const response = await businessSupportService.handleNonUrgentCallback(speechResult, callSid);
   
-<<<<<<< HEAD
   // Generate ElevenLabs audio for response
-  const responseAudio = await elevenLabsService.generateTwilioAudio(response.response);
-  if (responseAudio) {
-    twiml.play(responseAudio);
-  } else {
+  try {
+    const responseAudio = await elevenLabsService.generateTwilioAudio(response.response);
+    if (responseAudio) {
+      twiml.play(responseAudio);
+    } else {
+      throw new Error('ElevenLabs audio generation failed');
+    }
+  } catch (elevenLabsError) {
     twiml.say({
       voice: 'alice',
       rate: '0.9',
       language: 'de-DE'
     }, response.response);
   }
-=======
-  twiml.say({
-    voice: 'alice',
-    rate: '0.9',
-    language: 'de-DE'
-  }, response.response);
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
 
   const gather = twiml.gather({
     input: 'speech',
@@ -677,35 +630,35 @@ async function handleNonUrgentSetupWithVoice(twiml, speechResult, callSid, from)
     language: 'de-CH'
   });
 
-<<<<<<< HEAD
   const thanksText = 'Merci fürs aalüte.';
-  const thanksAudio = await elevenLabsService.generateTwilioAudio(thanksText);
-  if (thanksAudio) {
-    twiml.play(thanksAudio);
-  } else {
+  try {
+    const thanksAudio = await elevenLabsService.generateTwilioAudio(thanksText);
+    if (thanksAudio) {
+      twiml.play(thanksAudio);
+    } else {
+      throw new Error('ElevenLabs audio generation failed');
+    }
+  } catch (elevenLabsError) {
     twiml.say({
       voice: 'alice',
       language: 'de-DE'
     }, thanksText);
   }
-=======
-  twiml.say({
-    voice: 'alice',
-    language: 'de-DE'
-  }, 'Merci fürs aalüte.');
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
   twiml.hangup();
 }
 
 async function handleCallbackSchedulingWithVoice(twiml, speechResult, callSid, from) {
   const response = await businessSupportService.scheduleCallback(speechResult, callSid);
   
-<<<<<<< HEAD
   // Generate ElevenLabs audio for confirmation
-  const confirmAudio = await elevenLabsService.generateTwilioAudio(response.response);
-  if (confirmAudio) {
-    twiml.play(confirmAudio);
-  } else {
+  try {
+    const confirmAudio = await elevenLabsService.generateTwilioAudio(response.response);
+    if (confirmAudio) {
+      twiml.play(confirmAudio);
+    } else {
+      throw new Error('ElevenLabs audio generation failed');
+    }
+  } catch (elevenLabsError) {
     twiml.say({
       voice: 'alice',
       rate: '0.9',
@@ -715,70 +668,58 @@ async function handleCallbackSchedulingWithVoice(twiml, speechResult, callSid, f
 
   // Save callback to Google Sheets
   if (response.callbackScheduled) {
-    const callbackData = businessSupportService.collectedData?.get(callSid) || {};
-    await googleSheetsService.saveCallbackRequest({
-      ...callbackData,
-      phoneNumber: from,
-      referenceNumber: response.referenceNumber,
-      callbackTime: speechResult,
-      inquiry: 'Allgemeni Aafrag' // Could be enhanced based on conversation
-    });
+    try {
+      const callbackData = businessSupportService.collectedData?.get(callSid) || {};
+      await googleSheetsService.saveCallbackRequest({
+        ...callbackData,
+        phoneNumber: from,
+        referenceNumber: response.referenceNumber,
+        callbackTime: speechResult,
+        inquiry: 'Allgemeni Aafrag'
+      });
+    } catch (sheetsError) {
+      logger.warn('Google Sheets save failed:', sheetsError.message);
+    }
   }
 
   const goodbyeText = 'Händ en schöne Tag!';
-  const goodbyeAudio = await elevenLabsService.generateTwilioAudio(goodbyeText);
-  if (goodbyeAudio) {
-    twiml.play(goodbyeAudio);
-  } else {
+  try {
+    const goodbyeAudio = await elevenLabsService.generateTwilioAudio(goodbyeText);
+    if (goodbyeAudio) {
+      twiml.play(goodbyeAudio);
+    } else {
+      throw new Error('ElevenLabs audio generation failed');
+    }
+  } catch (elevenLabsError) {
     twiml.say({
       voice: 'alice',
       language: 'de-DE'
     }, goodbyeText);
   }
-=======
-  twiml.say({
-    voice: 'alice',
-    rate: '0.9',
-    language: 'de-DE'
-  }, response.response);
-
-  // CALLBACK SCHEDULED - End call
-  twiml.say({
-    voice: 'alice',
-    language: 'de-DE'
-  }, 'Händ en schöne Tag!');
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
   twiml.hangup();
 }
 
 async function handleError(res) {
   const twiml = new VoiceResponse();
-<<<<<<< HEAD
   const errorText = 'Technischi Schwierigkeite. Bitte rüefed i es paar Minute zrug.';
   
-  const errorAudio = await elevenLabsService.generateTwilioAudio(errorText);
-  if (errorAudio) {
-    twiml.play(errorAudio);
-  } else {
+  try {
+    const errorAudio = await elevenLabsService.generateTwilioAudio(errorText);
+    if (errorAudio) {
+      twiml.play(errorAudio);
+    } else {
+      throw new Error('ElevenLabs audio generation failed');
+    }
+  } catch (elevenLabsError) {
     twiml.say({
       voice: 'alice',
       language: 'de-DE'
     }, errorText);
   }
-=======
-  twiml.say({
-    voice: 'alice',
-    language: 'de-DE'
-  }, 'Technischi Schwierigkeite. Bitte rüefed i es paar Minute zrug.');
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
   twiml.hangup();
   
   res.type('text/xml');
   res.send(twiml.toString());
 }
 
-<<<<<<< HEAD
 module.exports = new EnhancedSwissGermanCallController();
-=======
-module.exports = new SwissGermanBusinessCallController();
->>>>>>> 9eab4bc9301537f07dbc3e02e00bc2546fad74f7
